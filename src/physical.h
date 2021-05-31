@@ -11,9 +11,9 @@ const uint16_t kFinalHomingSpeed = 0.5 * kStepsPerRev;
 // backoff from homing switch (steps) after inital press
 const uint16_t kHomeBackoff = 1 * kStepsPerRev;
 
-#define dirPinStepper    32
+#define dirPinStepper 32
 #define enablePinStepper 25
-#define stepPinStepper   33
+#define stepPinStepper 33
 
 #define homePin 26
 

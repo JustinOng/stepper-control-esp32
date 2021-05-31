@@ -72,7 +72,7 @@ void Stepper::task() {
   }
 }
 
-void IRAM_ATTR Stepper::homePinCheckWrapper(void * arg) {
+void IRAM_ATTR Stepper::homePinCheckWrapper(void *arg) {
   Stepper *stepper = (Stepper *)arg;
   stepper->homePinCheck();
 };
@@ -87,7 +87,7 @@ void IRAM_ATTR Stepper::homePinCheck() {
     stable_count = 0;
     reported = false;
   } else {
-    stable_count ++;
+    stable_count++;
   }
 
   if (stable_count > kStepperButtonStableThreshold && !reported && cur_state == kStepperButtonTriggeredState) {

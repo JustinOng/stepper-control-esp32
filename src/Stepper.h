@@ -2,6 +2,7 @@
 #define STEPPER_H
 
 #include <stdint.h>
+
 #include "FastAccelStepper.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -18,36 +19,36 @@ const uint16_t kStepperDefaultFinalHomingSpeed = 0.5 * kStepperDefaultStepsPerRe
 const uint16_t kStepperDefaultHomingBackoff = 1 * kStepperDefaultStepsPerRev;
 
 class Stepper {
-  public:
-    bool init(FastAccelStepperEngine &engine, uint8_t pin_step, uint8_t pin_dir, uint8_t pin_enable, uint8_t pin_home);
-    static void homePinCheckWrapper(void * arg);
-    static void taskWrapper(void *arg);
-    void task();
-    void homePinCheck();
+ public:
+  bool init(FastAccelStepperEngine &engine, uint8_t pin_step, uint8_t pin_dir, uint8_t pin_enable, uint8_t pin_home);
+  static void homePinCheckWrapper(void *arg);
+  static void taskWrapper(void *arg);
+  void task();
+  void homePinCheck();
 
-    void setAcceleration(uint16_t accel) {
-      _stepper->setAcceleration(accel);
-    }
+  void setAcceleration(uint16_t accel) {
+    _stepper->setAcceleration(accel);
+  }
 
-    void setHomingSpeed(uint16_t initial_speed, uint16_t final_speed) {
-      _param_homing_speed = initial_speed;
-      _param_final_homing_speed = final_speed;
-    }
+  void setHomingSpeed(uint16_t initial_speed, uint16_t final_speed) {
+    _param_homing_speed = initial_speed;
+    _param_final_homing_speed = final_speed;
+  }
 
-    void setHomingBackoff(uint16_t backoff) {
-      _param_homing_backoff = backoff;
-    }
+  void setHomingBackoff(uint16_t backoff) {
+    _param_homing_backoff = backoff;
+  }
 
-  private:
-    FastAccelStepper *_stepper = NULL;
-    uint8_t _pin_home;
-    TaskHandle_t _task_handle = NULL;
+ private:
+  FastAccelStepper *_stepper = NULL;
+  uint8_t _pin_home;
+  TaskHandle_t _task_handle = NULL;
 
-    uint16_t _param_homing_speed = kStepperDefaultHomingSpeed;
-    uint16_t _param_final_homing_speed = kStepperDefaultFinalHomingSpeed;
-    uint16_t _param_homing_backoff = kStepperDefaultHomingBackoff;
+  uint16_t _param_homing_speed = kStepperDefaultHomingSpeed;
+  uint16_t _param_final_homing_speed = kStepperDefaultFinalHomingSpeed;
+  uint16_t _param_homing_backoff = kStepperDefaultHomingBackoff;
 
-    void waitHomeTrigger();
+  void waitHomeTrigger();
 };
 
 #endif
