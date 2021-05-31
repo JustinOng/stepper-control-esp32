@@ -30,6 +30,9 @@ bool Stepper::init(FastAccelStepperEngine &engine, uint8_t pin_step, uint8_t pin
   }
   esp_timer_start_periodic(timer, kStepperButtonCheckInterval);
 
+  _command_queue = xQueueCreate(kStepperCommandQueueLength, sizeof(command_t));
+  assert(_command_queue != NULL);
+
   if (!xTaskCreate(Stepper::taskWrapper, "stepper", 4096, this, 10, &_task_handle)) {
     return false;
   }
@@ -42,35 +45,53 @@ void Stepper::taskWrapper(void *arg) {
   stepper->task();
 }
 
+bool Stepper::home() {
+  command_t command = COMMAND_HOME;
+  return xQueueSend(_command_queue, &command, 0) == pdTRUE;
+}
+
 void Stepper::task() {
   while (1) {
-    ESP_LOGD(TAG, "Waiting for initial home press");
-    waitHomeTrigger();
-    ESP_LOGD(TAG, "Start homing");
+    command_t command;
+    xQueueReceive(_command_queue, &command, portMAX_DELAY);
 
-    _stepper->enableOutputs();
-    // stage 1: move towards home until home is triggered
-    _stepper->setSpeedInHz(_param_homing_speed);
-    _stepper->runBackward();
+    switch (command) {
+      case COMMAND_HOME:
+        ESP_LOGD(TAG, "Waiting for initial home press");
+        waitHomeTrigger();
+        ESP_LOGD(TAG, "Start homing");
 
-    ESP_LOGD(TAG, "Waiting for home press");
-    waitHomeTrigger();
-    _stepper->forceStopAndNewPosition(0);
+        _stepper->enableOutputs();
+        // stage 1: move towards home until home is triggered
+        _stepper->setSpeedInHz(_param_homing_speed);
+        _stepper->runBackward();
 
-    ESP_LOGD(TAG, "Start backoff");
-    _stepper->move(_param_homing_backoff);
-    ESP_LOGD(TAG, "Waiting for stepper to stop moving");
-    while (_stepper->isRunning()) {
-      vTaskDelay(1);
+        ESP_LOGD(TAG, "Waiting for home press");
+        waitHomeTrigger();
+        _stepper->forceStopAndNewPosition(0);
+
+        ESP_LOGD(TAG, "Start backoff");
+        _stepper->move(_param_homing_backoff);
+        ESP_LOGD(TAG, "Waiting for stepper to stop moving");
+        while (_stepper->isRunning()) {
+          vTaskDelay(1);
+        }
+
+        // stage 2: move towards home until home is triggered
+        _stepper->setSpeedInHz(_param_final_homing_speed);
+        _stepper->runBackward();
+
+        ESP_LOGD(TAG, "Waiting for home press");
+        waitHomeTrigger();
+        _stepper->forceStopAndNewPosition(0);
+        _stepper->disableOutputs();
+
+        ESP_LOGD(TAG, "Homing done");
+        break;
+      default:
+        ESP_LOGW(TAG, "Unhandled command");
+        break;
     }
-
-    // stage 2: move towards home until home is triggered
-    _stepper->setSpeedInHz(_param_final_homing_speed);
-    _stepper->runBackward();
-
-    waitHomeTrigger();
-    _stepper->forceStopAndNewPosition(0);
-    _stepper->disableOutputs();
   }
 }
 

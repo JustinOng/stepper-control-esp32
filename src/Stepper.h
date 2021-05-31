@@ -5,6 +5,7 @@
 
 #include "FastAccelStepper.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "freertos/task.h"
 
 const uint16_t kStepperButtonCheckInterval = 10000;
@@ -18,13 +19,22 @@ const uint16_t kStepperDefaultHomingSpeed = 2 * kStepperDefaultStepsPerRev;
 const uint16_t kStepperDefaultFinalHomingSpeed = 0.5 * kStepperDefaultStepsPerRev;
 const uint16_t kStepperDefaultHomingBackoff = 1 * kStepperDefaultStepsPerRev;
 
+// max number of queued commands
+const uint8_t kStepperCommandQueueLength = 4;
+
 class Stepper {
  public:
+  typedef enum {
+    COMMAND_HOME
+  } command_t;
+
   bool init(FastAccelStepperEngine &engine, uint8_t pin_step, uint8_t pin_dir, uint8_t pin_enable, uint8_t pin_home);
   static void homePinCheckWrapper(void *arg);
   static void taskWrapper(void *arg);
   void task();
   void homePinCheck();
+
+  bool home();
 
   void setAcceleration(uint16_t accel) {
     _stepper->setAcceleration(accel);
@@ -43,6 +53,8 @@ class Stepper {
   FastAccelStepper *_stepper = NULL;
   uint8_t _pin_home;
   TaskHandle_t _task_handle = NULL;
+
+  QueueHandle_t _command_queue = NULL;
 
   uint16_t _param_homing_speed = kStepperDefaultHomingSpeed;
   uint16_t _param_final_homing_speed = kStepperDefaultFinalHomingSpeed;

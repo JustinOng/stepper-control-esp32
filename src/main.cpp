@@ -16,6 +16,8 @@ void setup() {
     ESP_LOGW(TAG, "Init fail");
   }
   stepper.setAcceleration(kAcceleration);
+
+  stepper.home();
 }
 
 void loop() {
