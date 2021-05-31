@@ -1,6 +1,8 @@
 #include "Stepper.h"
 
 #include "Arduino.h"
+#include "esp_log.h"
+const char *TAG = "stepper";
 
 bool Stepper::init(FastAccelStepperEngine &engine, uint8_t pin_step, uint8_t pin_dir, uint8_t pin_enable, uint8_t pin_home) {
   _stepper = engine.stepperConnectToPin(pin_step);
@@ -42,22 +44,22 @@ void Stepper::taskWrapper(void *arg) {
 
 void Stepper::task() {
   while (1) {
-    Serial.println("Waiting for initial home press");
+    ESP_LOGD(TAG, "Waiting for initial home press");
     waitHomeTrigger();
-    Serial.println("Home");
+    ESP_LOGD(TAG, "Start homing");
 
     _stepper->enableOutputs();
     // stage 1: move towards home until home is triggered
     _stepper->setSpeedInHz(_param_homing_speed);
     _stepper->runBackward();
 
-    Serial.println("Waiting for home press");
+    ESP_LOGD(TAG, "Waiting for home press");
     waitHomeTrigger();
     _stepper->forceStopAndNewPosition(0);
 
-    Serial.println("Start backoff");
+    ESP_LOGD(TAG, "Start backoff");
     _stepper->move(_param_homing_backoff);
-    Serial.println("Waiting for stepper to stop moving");
+    ESP_LOGD(TAG, "Waiting for stepper to stop moving");
     while (_stepper->isRunning()) {
       vTaskDelay(1);
     }

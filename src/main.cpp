@@ -7,12 +7,13 @@
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 Stepper stepper;
 
+static const char *TAG = "main";
+
 void setup() {
   engine.init();
-
-  Serial.begin(115200);
+  ESP_LOGI(TAG, "starting");
   if (!stepper.init(engine, stepPinStepper, dirPinStepper, enablePinStepper, homePin)) {
-    Serial.println("Init fail");
+    ESP_LOGW(TAG, "Init fail");
   }
   stepper.setAcceleration(kAcceleration);
 }
