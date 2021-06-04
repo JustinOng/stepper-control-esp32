@@ -57,11 +57,15 @@ void Stepper::task() {
 
     switch (command) {
       case COMMAND_HOME:
-        ESP_LOGD(TAG, "Waiting for initial home press");
-        waitHomeTrigger();
         ESP_LOGD(TAG, "Start homing");
 
         _stepper->enableOutputs();
+        while (digitalRead(_pin_home) == kStepperButtonTriggeredState) {
+          _stepper->setSpeedInHz(_param_homing_speed);
+          _stepper->runForward();
+        }
+        _stepper->forceStopAndNewPosition(0);
+
         // stage 1: move towards home until home is triggered
         _stepper->setSpeedInHz(_param_homing_speed);
         _stepper->runBackward();
