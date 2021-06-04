@@ -4,6 +4,10 @@
 const uint16_t kAcceleration = 12800;
 const uint16_t kStepsPerRev = 16 * 200;
 
+const uint16_t kStepperMaxPositionMm = 400;
+// 1 rev will move 8mm because of the lead screw pitch, so divide
+const uint16_t kStepperStepsPerMm = kStepsPerRev / 8;
+
 // initial homing speed (steps per second)
 const uint16_t kHomingSpeed = 2 * kStepsPerRev;
 // final homing speed (steps per second)
