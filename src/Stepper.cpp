@@ -30,7 +30,7 @@ bool Stepper::init(FastAccelStepperEngine &engine, uint8_t pin_step, uint8_t pin
   }
   esp_timer_start_periodic(timer, kStepperButtonCheckInterval);
 
-  _command_queue = xQueueCreate(kStepperCommandQueueLength, sizeof(command_t));
+  _command_queue = xQueueCreate(kStepperCommandQueueLength, sizeof(command_container_t));
   assert(_command_queue != NULL);
 
   if (!xTaskCreate(Stepper::taskWrapper, "stepper", 4096, this, 10, &_task_handle)) {
@@ -46,16 +46,17 @@ void Stepper::taskWrapper(void *arg) {
 }
 
 bool Stepper::home() {
-  command_t command = COMMAND_HOME;
+  command_container_t command;
+  command.command = COMMAND_HOME;
   return xQueueSend(_command_queue, &command, 0) == pdTRUE;
 }
 
 void Stepper::task() {
   while (1) {
-    command_t command;
+    command_container_t command;
     xQueueReceive(_command_queue, &command, portMAX_DELAY);
 
-    switch (command) {
+    switch (command.command) {
       case COMMAND_HOME:
         ESP_LOGD(TAG, "Start homing");
 

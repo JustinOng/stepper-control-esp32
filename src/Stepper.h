@@ -28,6 +28,13 @@ class Stepper {
     COMMAND_HOME
   } command_t;
 
+  typedef struct {
+    command_t command;
+    union {
+      int32_t int32;
+    } data;
+  } command_container_t;
+
   bool init(FastAccelStepperEngine &engine, uint8_t pin_step, uint8_t pin_dir, uint8_t pin_enable, uint8_t pin_home);
   static void homePinCheckWrapper(void *arg);
   static void taskWrapper(void *arg);
@@ -35,6 +42,7 @@ class Stepper {
   void homePinCheck();
 
   bool home();
+  bool moveTo(int32_t position);
 
   void setAcceleration(uint16_t accel) {
     _stepper->setAcceleration(accel);
