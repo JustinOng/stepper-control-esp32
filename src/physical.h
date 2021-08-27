@@ -4,7 +4,7 @@
 const uint16_t kAcceleration = 12800;
 const uint16_t kStepsPerRev = 16 * 200;
 
-const uint16_t kStepperMaxPositionMm = 400;
+const uint16_t kStepperMaxPositionMm = 300;
 // 1 rev will move 8mm because of the lead screw pitch, so divide
 const uint16_t kStepperStepsPerMm = kStepsPerRev / 8;
 

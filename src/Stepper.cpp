@@ -51,6 +51,13 @@ bool Stepper::home() {
   return xQueueSend(_command_queue, &command, 0) == pdTRUE;
 }
 
+bool Stepper::moveTo(int32_t position) {
+  command_container_t command;
+  command.command = COMMAND_MOVE;
+  command.data.int32 = position;
+  return xQueueSend(_command_queue, &command, 0) == pdTRUE;
+}
+
 void Stepper::task() {
   while (1) {
     command_container_t command;
@@ -92,6 +99,15 @@ void Stepper::task() {
         _stepper->disableOutputs();
 
         ESP_LOGD(TAG, "Homing done");
+        break;
+      case COMMAND_MOVE:
+        _stepper->setSpeedInHz(_param_move_speed);
+        _stepper->enableOutputs();
+        _stepper->moveTo(command.data.int32);
+        while (_stepper->isRunning()) {
+          vTaskDelay(pdMS_TO_TICKS(100));
+        }
+        _stepper->disableOutputs();
         break;
       default:
         ESP_LOGW(TAG, "Unhandled command");

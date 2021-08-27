@@ -15,6 +15,7 @@ const uint8_t kStepperButtonTriggeredState = 0;
 
 const uint16_t kStepperDefaultStepsPerRev = 16 * 200;
 const uint16_t kStepperDefaultAcceleration = 12800;
+const uint16_t kStepperDefaultMoveSpeed = 4 * kStepperDefaultStepsPerRev;
 const uint16_t kStepperDefaultHomingSpeed = 2 * kStepperDefaultStepsPerRev;
 const uint16_t kStepperDefaultFinalHomingSpeed = 0.5 * kStepperDefaultStepsPerRev;
 const uint16_t kStepperDefaultHomingBackoff = 1 * kStepperDefaultStepsPerRev;
@@ -25,7 +26,8 @@ const uint8_t kStepperCommandQueueLength = 4;
 class Stepper {
  public:
   typedef enum {
-    COMMAND_HOME
+    COMMAND_HOME,
+    COMMAND_MOVE
   } command_t;
 
   typedef struct {
@@ -48,6 +50,9 @@ class Stepper {
     _stepper->setAcceleration(accel);
   }
 
+  void setMoveSpeed(uint16_t speed) {
+    _param_move_speed = speed;
+  }
   void setHomingSpeed(uint16_t initial_speed, uint16_t final_speed) {
     _param_homing_speed = initial_speed;
     _param_final_homing_speed = final_speed;
@@ -64,6 +69,7 @@ class Stepper {
 
   QueueHandle_t _command_queue = NULL;
 
+  uint16_t _param_move_speed = kStepperDefaultMoveSpeed;
   uint16_t _param_homing_speed = kStepperDefaultHomingSpeed;
   uint16_t _param_final_homing_speed = kStepperDefaultFinalHomingSpeed;
   uint16_t _param_homing_backoff = kStepperDefaultHomingBackoff;
